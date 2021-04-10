@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Selectable</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>  
+	<link type='text/css' rel="stylesheet" href="css/common.css">
+</head>
+<body>
+
+  <section class="container">
+        <div id="ib1" class="ib1">
+        </div>
+        <div class="ib2">
+            <button id="btnselectall"  type="button" class="btn btn-info active">Select All (CTRL+A)</button>
+            <button id="btndeselectall" type="button" class="btn btn-info active">Deselect All (CTRL+D)</button>
+            <button id="btndownload" type="button" class="btn btn-info active">Download</button>
+            <div id="TotalSizeContainer" class="TotalSizeContainer">
+                <div class="SizeTitle">
+                   Total Size : 
+                </div>
+                <div id="TotalSize" class="TotalSize"></div>
+            </div>
+            
+        </div>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.0-rc.2/jquery-ui.min.js"></script>
+    <script type="text/javascript">
+      ﻿
+var report = {
+  "reports": [{
+    "id": "1",
+    "name": "Acoustic",
+    "type": "bar",
+    "size": 12288
+  }, {
+    "id": "2",
+    "name": "Aleatoric",
+    "type": "line",
+    "size": 242688
+  }, {
+    "id": "3",
+    "name": "Ambient",
+    "type": "bar",
+    "size": 1010688
+  }, {
+    "id": "4",
+    "name": "Blues",
+    "type": "grid",
+    "size": 1258291
+  }, {
+    "id": "5",
+    "name": "Chumba",
+    "type": "line",
+    "size": 21196
+  }, {
+    "id": "6",
+    "name": "Classical",
+    "type": "bar-stacked",
+    "size": 2422210
+  }, {
+    "id": "7",
+    "name": "Dance-pop",
+    "type": "grid",
+    "size": 37888
+  }, {
+    "id": "8",
+    "name": "Doina",
+    "type": "line",
+    "size": 8294
+  }, {
+    "id": "9",
+    "name": "Electro",
+    "type": "bar-stacked",
+    "size": 9563013
+  }, {
+    "id": "10",
+    "name": "Folk",
+    "type": "bar",
+    "size": 90112
+  }]
+};
+
+//------------------------------END DATA-----------------------------------------------------------------------
+
+//------------------------------READ DATA FROM JSON------------------------------------------------------------     
+var myOutput = "<ol id='selectable'>";
+var sizes = [];
+for (var i in report.reports) {
+  //در صورتی که بخواهیم تنها همان 4 باکس موجود در سوال را نشان دهد فرمان زیر را از حالت کامنت در می آوریم
+  //if (report.reports[i].id == 1 || report.reports[i].id == 2 || report.reports[i].id == 9 || report.reports[i].id == 10) {
+
+  myOutput += "<li id='" + report.reports[i].id + "' class='ui-state-default'>" +
+    "<p class='item-title'>" + report.reports[i].name + "</span>" +
+    "<div><span class='item-size'>" + bytesToSize(report.reports[i].size) + "</span>" +
+    "<span id='" + report.reports[i].id + "' class='dl'  draggable='false'/>♥</span></li>"
+    //     }
+  $(".item-title").prop("disabled", true);
+
+  sizes.push(report.reports[i].size);
+}
+
+myOutput += "</ol>"
+document.getElementById("ib1").innerHTML = myOutput;
+$(function() {
+  $("#selectable").selectable();
+});
+//------------------------------END READ DATA FROM JSON--------------------------------------------------------  
+
+//------------------------------CALCULATE TOTAL SIZES-----------------------------------------------------------   
+var total = 0;
+document.getElementById("TotalSize").textContent = 0;
+$('#TotalSizeContainer').hide();
+
+function totaly() {
+
+  var thisId;
+  var personViewModel = {
+    firstName: ko.observable(123),
+  };
+  var count = 0;
+
+  $("li").each(function() {
+    if ($(this).attr('class') == 'ui-state-default ui-selectee ui-selected') {
+      total += sizes[parseInt($(this).attr('id').toString()) - 1];
+      personViewModel.firstName(total);
+      ko.applyBindings(personViewModel);
+      document.getElementById("TotalSize").textContent = bytesToSize(total);
+      count++;
+      $('#TotalSizeContainer').show();
+
+    }
+    if (count == 0) {
+
+      $('#btndeselectall').css("background-color", "#dbf1ff");
+      $('#btndeselectall').css("cursor", "default");
+      $("#btndeselectall").prop("disabled", true);
+      $('#btndownload').css("cursor", "default");
+      $('#btndownload').css("background-color", "#dbf1ff");
+      $('#TotalSizeContainer').hide();
+    } else {
+      $('#btndeselectall').css("background-color", "#4cb7fb");
+      $('#btndeselectall').css("cursor", "pointer");
+      $("#btndeselectall").prop("disabled", false);
+      $('#btndownload').css("cursor", "pointer");
+      $('#btndownload').css("background-color", "#4cb7fb");
+      $('#TotalSizeContainer').show();
+    }
+
+    if (count == sizes.length) {
+      $('#btnselectall').css("background-color", "#dbf1ff");
+      $('#btnselectall').css("cursor", "default");
+      $("#btnselectall").prop("disabled", true);
+    } else {
+      $('#btnselectall').css("background-color", "#4cb7fb");
+      $('#btnselectall').css("cursor", "pointer");
+      $("#btnselectall").prop("disabled", false);
+    }
+
+  });
+  total = 0;
+  count = 0;
+}
+window.setInterval(totaly, 100);
+//------------------------------END CALCULATE TOTAL SIZES-------------------------------------------------------- 
+
+//------------------------------DOWNLOAD BUTTON------------------------------------------------------------------ 
+$('.dl').click(function() {
+  window.alert("Id\n" + $(this).attr('id'));
+});
+
+//------------------------------END DOWNLOAD BUTTON-------------------------------------------------------------- 
+
+//------------------------------IMPLEMENT SHORTCUT KEYS---------------------------------------------------------- 
+
+$(document).ready(function() {
+  $.ctrl = function(key, callback, args) {
+    var isCtrl = false;
+    $(document).keydown(function(e) {
+      if (!args) args = []; // IE barks when args is null
+
+      if (e.ctrlKey) isCtrl = true;
+      if (e.keyCode == key.charCodeAt(0) && isCtrl) {
+        callback.apply(this, args);
+        return false;
+      }
+    }).keyup(function(e) {
+      if (e.ctrlKey) isCtrl = false;
+    });
+  };
+  $.ctrl('A', function() {
+    $("li").each(function() {}).addClass("ui-selected");
+  });
+  $.ctrl('D', function() {
+    document.getElementById("TotalSize").textContent = 0;
+    $('#TotalSizeContainer').hide("slow");
+    $("li").each(function() {}).removeClass("ui-selected");
+  });
+});
+//------------------------------END IMPLEMENT SHORTCUT KEYS--------------------------------------------------------   
+
+//------------------------------IMPLEMENT MAIN BUTTONS-------------------------------------------------------------   
+$("#btnselectall").click(function() {
+  $("li").each(function() {}).addClass("ui-selected");
+});
+$("#btndeselectall").click(function() {
+  document.getElementById("TotalSize").textContent = 0;
+  $('#TotalSizeContainer').hide("slow");
+  $("li").each(function() {}).removeClass("ui-selected");
+
+});
+
+$("#btndownload").click(function() {
+  var selectedItems = "";
+  $("li").each(function() {
+    if ($(this).attr('class') == 'ui-state-default ui-selectee ui-selected') {
+      selectedItems += $(this).attr('id') + "\n";
+
+    }
+
+  });
+  window.alert("Selected Styles\n" + selectedItems);
+});
+//------------------------------END IMPLEMENT MAIN BUTTONS-------------------------------------------------------- 
+
+//------------------------------CONVERT SIZES FUNCTION------------------------------------------------------------ 
+function bytesToSize(bytes) {
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes == 0) return 'n/a';
+  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+  if (i == 0) return bytes + ' ' + sizes[i];
+
+  if (parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) * 100 % 100 == 0) {
+    return parseFloat(bytes / Math.pow(1024, i)).toFixed(0) + ' ' + sizes[i];
+  }
+  if (parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) * 100 % 10 == 0) {
+    return parseFloat(bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+  } else
+    return parseFloat(bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+};
+//------------------------------END CONVERT SIZES FUNCTION--------------------------------------------------------
+    </script>
+
+</body>
+</html>
